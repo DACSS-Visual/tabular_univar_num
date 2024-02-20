@@ -39,7 +39,7 @@ rm(list = ls()) # clean memory
 location='https://github.com/DACSS-Visual/tabular_univar_cat/raw/main/data/'
 file='eduwa.rda'
 link=paste0(location,file)
-
+write.csv(eduwa,"eduwa.csv")
 
 #getting the data TABLE from the file in the cloud:
 load(file=url(link))
