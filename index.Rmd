@@ -2,16 +2,6 @@
 <center><img src="https://i.imgur.com/AbCCpQO.png" width="700"></center>
 
 
-
-_____
-
-<a id='part0'></a>
-
-# Tabular data- Univariate Categorical
-
-
-
-
 _____
 
 <a id='TOC'></a>
@@ -29,7 +19,9 @@ _____
 
 _____
 
-
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position = c('top', 'right'))
+```
 
 Let's load the data we used for the last session:
 
@@ -39,7 +31,7 @@ rm(list = ls()) # clean memory
 location='https://github.com/DACSS-Visual/tabular_univar_cat/raw/main/data/'
 file='eduwa.rda'
 link=paste0(location,file)
-write.csv(eduwa,"eduwa.csv")
+
 
 #getting the data TABLE from the file in the cloud:
 load(file=url(link))
@@ -91,7 +83,7 @@ This information may give us a general idea on how the data on _reduced lunch_ i
 ```
 
 
-2. Put some of those values in the boxplot y-axis:
+2. Put those values in the boxplot y-axis (y in the horizontal - as I flipped the plot):
 
 ```{r, eval=TRUE, warning=FALSE, message=FALSE}
 library(magrittr)
@@ -101,28 +93,21 @@ statVals=statVals%>%as.vector() #notice '%>%'
 #plotting
 base= ggplot(eduwa,aes(y = Reduced.Lunch))  
 b1= base + geom_boxplot() 
-b1=b1 +coord_flip()
 b1=b1+ scale_y_continuous(breaks = statVals) #custom breaks
+b1=b1 +coord_flip()
+
 b1
 ```
 
 
+
 This boxplot shows outliers on the right tail, that means there is theoretical upper limit or threshold different than the maximum value of the variable. I can get that threshold this way:
 
-  a. Compute the interquartile range (difference between q3 and q1):
-
-```{r, eval=TRUE}
-(theIQR=IQR(eduwa$Reduced.Lunch,na.rm = T))
+```{r, warning=FALSE}
+(upperT=ggplot_build(b1)$data[[1]]$ymax)
 ```
 
-  b. Multiply the IQR by a factor (typically 1.5). That value is added to the third quartile and the result is the upper threshold (if there were a lower threshold you would substract):
-
-```{r, eval=TRUE}
-# the upper threshold
-(upperT=summary(eduwa$Reduced.Lunch)[[5]] + theIQR*1.5)
-```
-
-  c. Knowing the upper threshold, I can compute the amount of outliers in the right tail:
+Knowing the upper threshold, I can compute the _amount of outliers_ on the right tail:
 
 ```{r, eval=TRUE}
 (numOutliers=sum(eduwa$Reduced.Lunch>upperT,na.rm = T))
@@ -455,7 +440,7 @@ reducedLunch_county
 
 Now you have much less cases, just 39. Let's order by count in decreasing order:
 
-```{r, eval=FALSE}
+```{r}
 # order and minus (-) for decreasing
 reducedLunch_county=reducedLunch_county[order(-reducedLunch_county$Reduced.Lunch),]
 row.names(reducedLunch_county)=NULL
@@ -463,7 +448,7 @@ head(reducedLunch_county,10)
 ```
 Let's add the percent, and cummulative percent and cummulative count:
 
-```{r, eval=FALSE}
+```{r}
 reducedLunch_county$Percent=reducedLunch_county$Reduced.Lunch/sum(reducedLunch_county$Reduced.Lunch)
 reducedLunch_county$PercentCum=cumsum(reducedLunch_county$Percent)
 reducedLunch_county$Reduced.Lunch.Cum=cumsum(reducedLunch_county$Reduced.Lunch)
@@ -489,7 +474,7 @@ length(reducedLunch_county[reducedLunch_county$PercentCum<0.8,"County"])/nrow(re
 
 You can see that in a Pareto plot:
 
-```{r, eval=FALSE}
+```{r}
 library(ggQC) # install this previously
 
 base=ggplot(data=reducedLunch_county,
@@ -504,10 +489,10 @@ Please, prepare for Thursday one of these:
 
 - A **better** version of this Pareto plot (modify it).
 
-- Your  **own good and alternative** version of a Pareto plot for the _Free.Lunch_ variable. This would be your first step:
+- Your  **own alternative** version of a Pareto plot for the _Free.Lunch_ variable without using the library **ggQC** . This would be your first step:
 
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 
 myBase=ggplot(data=reducedLunch_county,
              aes(x=County,Reduced.Lunch.Cum)) + theme_classic() 
