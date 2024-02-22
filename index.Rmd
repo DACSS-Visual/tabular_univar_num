@@ -116,40 +116,43 @@ Knowing the upper threshold, I can compute the _amount of outliers_ on the right
 3. We can _decide_ to annotate my boxplot with this value:
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE}
-txtUpper=paste0('Threshold:',upperT)
-txtOut=paste0('#Outlying schools: ',numOutliers)
 
-b1_line = b1 + geom_hline(yintercept = upperT,
+# text for annotations
+txtOutliers=paste0('#Outlying schools: ',numOutliers)
+txtThreshold=paste0('Threshold:',upperT)
+
+
+b1_vertical = b1 + geom_hline(yintercept = upperT,
                             color='red',
                             linetype="dotted",
                             size=2) 
-b1_upper_line=b1_line + annotate(geom = 'text',
-                                label=txtUpper,
+b1_annot=b1_vertical + annotate(geom = 'text',
+                                label=txtThreshold,
                                 y = upperT+5,
                                 x=0.2,
                                 angle=90) # text angle
 
-b1_upper_line_out=b1_upper_line + annotate(geom = 'text',
-                                label=txtOut,
+b1_annot=b1_annot + annotate(geom = 'text',
+                                label=txtOutliers,
                                 y = upperT+60,
                                 x=0.1,
                                 angle=0)
-b1_upper_line_out
+b1_annot
 ```
 
 You can get rid of the vertical axis values:
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE}
-b1_upper_line_out_noX=b1_upper_line_out + 
+b1_annot_noX=b1_annot + 
                       theme(axis.text.y = element_blank(),
                             axis.ticks.y = element_blank(),
                             axis.title.y = element_blank())
-b1_upper_line_out_noX
+b1_annot_noX
 ```
 
 Also, change text location in the horizontal:
 ```{r}
-b1_upper_line_out_noX + theme(axis.text.x = element_text(angle = 60,
+b1_annot_noX + theme(axis.text.x = element_text(angle = 60,
                                                          size = 7,
                                                          vjust = 0.5))
 ```
@@ -247,18 +250,18 @@ Let's do some annotations:
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE}
 # texts
-annMean=paste0('Mean:',round(mn))
-annSk=paste0('Skeness:',round(sk,2))
+txtMean=paste0('Mean:',round(mn))
+txtSkew=paste0('Skeness:',round(sk,2))
 
 # adding
 h1+ geom_vline(xintercept = mn,color='red') + # mean as line
     annotate(geom = 'text',color='red',
-             label=annMean,
+             label=txtMean,
               y = 400,
               x=mn+5,
               angle=90) + # mean as value
     annotate(geom = 'text', color='blue',
-             label=annSk,
+             label=txtSkew,
               y = 50,
               x=upperT+170,
               angle=0) # skewness
@@ -327,8 +330,8 @@ Let me annotate:
 ModeCountY=modeClassInfo$count
 # position of modal class 
 PositionCountX=modeClassInfo$x
-
-ModeMessage=paste0("<- Count of Modal Class [",
+# txt
+txtMode=paste0("<- Count of Modal Class [",
                    modeClassInfo$xmin,' - ',
                    modeClassInfo$xmax,']')
 
@@ -341,7 +344,7 @@ hist2ann=hist2 + geom_hline(yintercept =ModeCountY,
              color='red',
               angle=0) +
     annotate(geom = 'text',
-             label=ModeMessage,
+             label=txtMode,
               y = ModeCountY+40,
               x=PositionCountX+90,
              color='red',
@@ -351,7 +354,7 @@ hist2ann
 ```
 
 
-We know this variable has one peak, is highly skewed, and  has outliers at the top and the bottom values. We could try to combine all that in one visual:
+We know this variable has one peak, it is highly skewed, and it has outliers at the top and the bottom values. We could try to combine all that in one visual:
 
 ```{r,warning=FALSE, message=FALSE}
 library(ggpubr)
