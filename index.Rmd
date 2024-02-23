@@ -462,7 +462,7 @@ _____
 <a id='part3'></a>
 
 
-# LAB for THURSDAY: From numeric to ordinal via aggregation
+## LAB for THURSDAY: From numeric to ordinal via aggregation
 
 Numerical data may be difficult to communicate as it has a lot of variability, and range. We could cut the data into intervals as in the last week´s lab; but you will get a histogram. 
 
