@@ -51,13 +51,15 @@ length(unique(eduwa$Reduced.Lunch))
 These are too many different values. Then, the bar plot is not a good idea (and neither a frequency table), as the bar plot produces a bar for _each_ unique value in the data. This is how a bar plot will look for this variable:
 
 ```{r, eval=TRUE}
+# from table to dataframe
 lunchDF=as.data.frame(table(eduwa$Reduced.Lunch))
 names(lunchDF)=c("Reduced_Lunch_Beneficiaries","Count")
 
+# plotting from data frame
 library(ggplot2)
 base1=ggplot(data=lunchDF, aes(x=Reduced_Lunch_Beneficiaries,Count))
-bar1=base1+geom_bar(stat = "identity")
-bar1
+bar1_bad=base1+geom_bar(stat = "identity")
+bar1_bad
 ```
 
 The variety of numerical data requires statistical exploration with some questions in mind:
@@ -76,14 +78,20 @@ summary(eduwa$Reduced.Lunch)
 ```
 This information may give us a general idea on how the data on _reduced lunch_ is behaving, so we select the plot that highlights that behavior. Let me try a box plot:
 
-1. Keep all the _summary_ values but the count of NAs.
-
-```{r, eval=TRUE}
-(statVals=summary(eduwa$Reduced.Lunch,digits = 3)[1:6])
+```{r boxPlotbasic}
+base= ggplot(eduwa,aes(y = Reduced.Lunch))  #var to plot in 'y' 
+base + geom_boxplot()
 ```
 
+That is our starting point. Now, let's follow some steps to change the previous boxplot:
 
-2. Put those values in the boxplot y-axis (y in the horizontal - as I flipped the plot):
+1. What should the y-axis show? 
+
+```{r, eval=TRUE}
+# get all the summary values but the count of NAs.
+(statVals=summary(eduwa$Reduced.Lunch,digits = 3)[1:6])
+```
+Instead of the default values, we could put those values in the boxplot y-axis:
 
 ```{r, eval=TRUE, warning=FALSE, message=FALSE}
 library(magrittr)
@@ -94,32 +102,41 @@ statVals=statVals%>%as.vector() #notice '%>%'
 base= ggplot(eduwa,aes(y = Reduced.Lunch))  
 b1= base + geom_boxplot() 
 b1=b1+ scale_y_continuous(breaks = statVals) #custom breaks
-b1=b1 +coord_flip()
-
 b1
 ```
+In general, flipping can help:
 
+```{r}
+b1=b1 +coord_flip()
+b1
 
+```
 
-This boxplot shows outliers on the right tail, that means there is theoretical upper limit or threshold different than the maximum value of the variable. I can get that threshold this way:
+3. Should we annotate?
+
+What about:
+* The upper limit (before outliers appear).
+* The amount of outliers limit (before outliers appear).
+
+We get the upper limit like this:
 
 ```{r, warning=FALSE}
 (upperT=ggplot_build(b1)$data[[1]]$ymax)
 ```
 
-Knowing the upper threshold, I can compute the _amount of outliers_ on the right tail:
+We can compute the _amount of outliers_ on the right tail like this:
 
 ```{r, eval=TRUE}
 (numOutliers=sum(eduwa$Reduced.Lunch>upperT,na.rm = T))
 ```
 
-3. We can _decide_ to annotate my boxplot with this value:
+Let's annotate
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE}
 
 # text for annotations
 txtOutliers=paste0('#Outlying schools: ',numOutliers)
-txtThreshold=paste0('Threshold:',upperT)
+txtUpper=paste0('Threshold:',upperT)
 
 
 b1_vertical = b1 + geom_hline(yintercept = upperT,
@@ -127,7 +144,7 @@ b1_vertical = b1 + geom_hline(yintercept = upperT,
                             linetype="dotted",
                             size=2) 
 b1_annot=b1_vertical + annotate(geom = 'text',
-                                label=txtThreshold,
+                                label=txtUpper,
                                 y = upperT+5,
                                 x=0.2,
                                 angle=90) # text angle
@@ -140,21 +157,32 @@ b1_annot=b1_annot + annotate(geom = 'text',
 b1_annot
 ```
 
-You can get rid of the vertical axis values:
+3. Do we need the values in the vertical axis?
 
 ```{r, eval=TRUE,warning=FALSE, message=FALSE}
-b1_annot_noX=b1_annot + 
-                      theme(axis.text.y = element_blank(),
-                            axis.ticks.y = element_blank(),
-                            axis.title.y = element_blank())
+b1_annot_noX = b1_annot + 
+                theme(axis.text.y = element_blank(),
+                      axis.ticks.y = element_blank(),
+                      axis.title.y = element_blank())
 b1_annot_noX
 ```
 
-Also, change text location in the horizontal:
+4. What may need further changes?
+
+* What about choosing a different theme (grid)?
+
 ```{r}
-b1_annot_noX + theme(axis.text.x = element_text(angle = 60,
-                                                         size = 7,
-                                                         vjust = 0.5))
+b1_newGrid=b1_annot_noX +  theme_classic()
+b1_newGrid
+```
+
+* Maybe the text in the horizontal is not easy to read yet?
+
+```{r}
+b1_better_axisText = b1_newGrid+ theme(axis.text.x = element_text(angle = 60,
+                                                                  size = 7,
+                                                                  vjust = 0.5))
+b1_better_axisText
 ```
 
 
@@ -178,27 +206,22 @@ mad(eduwa$Reduced.Lunch,na.rm = T)
 # coefficient of variation
 library(DescTools)
 CoefVar(eduwa$Reduced.Lunch,
-        na.rm = T,
-        unbiased=T,
-        conf.level = 0.95)
+        na.rm = T)
 ```
+
 There are also measures of shape:
 
 ```{r, eval=TRUE, message=FALSE}
 # asymmetry
 Skew(eduwa$Reduced.Lunch,
-     na.rm = T,
-     conf.level = 0.95,
-     ci.type = "bca",
-     R=2500)
+     na.rm = T)
 
 ```
 
 ```{r, eval=TRUE}
 # kurtosis
 Kurt(eduwa$Reduced.Lunch,
-     na.rm = T,conf.level = 0.95,
-     ci.type = "bca",R=2500)
+     na.rm = T)
 ```
 
 And the confidence interval for the mean:
@@ -232,15 +255,15 @@ sk=Skew(eduwa$Reduced.Lunch,
 ```
 
 
-A key visual for numerical data is the **histogram**. The histogram looks like a bar plot. In both cases the height of the bars represent counts, but the bars in the histogram are consecutive while the bases of the bars are numeric intervals (**binwidth** informs the length of the intervals). Histograms mainly help you see clearly where and how many _peaks_ are there in the data distribution. Let's make one:
+A key visual for numerical data is the **histogram**. The histogram looks like a bar plot. In both cases the height of the bars represent counts/percents, but the bars in the histogram are consecutive while the bases of the bars are numeric intervals (**binwidth** informs the width of the intervals). Histograms mainly help you see clearly where and how many _peaks_ there are in the data distribution. Let's make one:
 
 ```{r GGLikeBase,eval=TRUE,warning=FALSE, message=FALSE}
 #ggplot
-WIDTH=10
+barWIDTH=10
 library(ggplot2)
 base= ggplot(eduwa)  
 h1= base + geom_histogram(aes(x = Reduced.Lunch),
-                          binwidth = WIDTH,
+                          binwidth = barWIDTH,
                           fill='black') 
 h1=h1 + labs(y="count")
 h1
@@ -255,20 +278,33 @@ txtSkew=paste0('Skeness:',round(sk,2))
 
 # adding
 h1+ geom_vline(xintercept = mn,color='red') + # mean as line
+    # about the mean
     annotate(geom = 'text',color='red',
-             label=txtMean,
+             label=txtMean, # mean as text
               y = 400,
               x=mn+5,
-              angle=90) + # mean as value
+              angle=90) + 
+    # about the skewness
     annotate(geom = 'text', color='blue',
-             label=txtSkew,
+             label=txtSkew, # skewness as text
               y = 50,
               x=upperT+170,
-              angle=0) # skewness
+              angle=0) 
     
 ```
 
-What else would you do?
+* Would you plot the median instead of the mean? 
+* How would you use the skewness value?
+* What would you do with these facts? 
+
+```{r}
+sum(eduwa$Reduced.Lunch==0,na.rm = T)
+```
+```{r}
+sum(eduwa$Reduced.Lunch==0,na.rm = T)/sum(complete.cases(eduwa$Reduced.Lunch))
+```
+
+
 
 [Go to table of contents.](#TOC)
 
@@ -305,13 +341,13 @@ hist2=hist2 + labs(y='count')
 hist2
 ```
 
-You can recover the count of each bar in the histogram using **ggplot_built**:
+You can use **ggplot_built** to get more details:
 
 ```{r, message=FALSE, warning=FALSE}
 ggplot_build(hist2)$data[[1]]%>%head()
 ```
 
-We can recover some of that information:
+We can use some of that information:
 
 ```{r, message=FALSE, warning=FALSE}
 (fromHist=ggplot_build(hist2)$data[[1]][,c('count','x','xmin','xmax')])
@@ -492,7 +528,7 @@ Please, prepare for Thursday one of these:
 
 - A **better** version of this Pareto plot (modify it).
 
-- Your  **own alternative** version of a Pareto plot for the _Free.Lunch_ variable without using the library **ggQC** . This would be your first step:
+- Your  **own alternative** version of a Pareto plot for the _Reduced.Lunch_ variable without using the library **ggQC** . This would be your first step:
 
 
 ```{r, eval=TRUE}
