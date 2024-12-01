@@ -8,14 +8,6 @@ _____
 
 # Tabular data: Univariate Numerical
 
-_____
-
-1. [Counting](#part1)
-
-2. [Measuring](#part2)
-
-3. [LAB (next meeting).](#part3) 
-
 
 _____
 
@@ -23,7 +15,7 @@ _____
 klippy::klippy(position = c('top', 'right'))
 ```
 
-Let's load the data we used for the last session:
+Let's load the data we previously used on schools:
 
 ```{r getData, eval=TRUE}
 rm(list = ls()) # clean memory
@@ -37,11 +29,7 @@ link=paste0(location,file)
 load(file=url(link))
 ```
 
-<a id='part1'></a>
-
-## Data from Counting
-
-Counting expresses _integer_ values. They could be represented with bar plots if their frequency table had few discrete values, but that is not generally the case. For example, the variable _Reduced.Lunch_ informs how many kids there are in each school that have that lunch for a reduced price. We have more than 2000 schools, so it is unlikely we find few different values. This is how many different values we have:
+Let me use the variable _Reduced.Lunch_ which informs how many kids there are in each school that offer  lunch for a reduced price. We have more than 2000 schools, so it is unlikely we find few different values. This is how many different values we have:
 
 ```{r unique, eval=TRUE}
 # how many unique values
@@ -172,17 +160,17 @@ b1_annot_noX
 * What about choosing a different theme (grid)?
 
 ```{r}
-b1_newGrid=b1_annot_noX +  theme_classic()
+b1_newGrid=b1_annot_noX +  theme(panel.grid = element_blank())
 b1_newGrid
 ```
 
 * Maybe the text in the horizontal is not easy to read yet?
 
 ```{r}
-b1_better_axisText = b1_newGrid+ theme(axis.text.x = element_text(angle = 60,
+b1_newGrid_axisText = b1_newGrid+ theme(axis.text.x = element_text(angle = 60,
                                                                   size = 7,
                                                                   vjust = 0.5))
-b1_better_axisText
+b1_newGrid_axisText
 ```
 
 
@@ -277,7 +265,7 @@ txtMean=paste0('Mean:',round(mn))
 txtSkew=paste0('Skeness:',round(sk,2))
 
 # adding
-h1+ geom_vline(xintercept = mn,color='red') + # mean as line
+h1_ann=h1+ geom_vline(xintercept = mn,color='red') + # mean as line
     # about the mean
     annotate(geom = 'text',color='red',
              label=txtMean, # mean as text
@@ -290,103 +278,8 @@ h1+ geom_vline(xintercept = mn,color='red') + # mean as line
               y = 50,
               x=upperT+170,
               angle=0) 
-    
-```
 
-* Would you plot the median instead of the mean? 
-* How would you use the skewness value?
-* What would you do with these facts? 
-
-```{r}
-sum(eduwa$Reduced.Lunch==0,na.rm = T)
-```
-```{r}
-sum(eduwa$Reduced.Lunch==0,na.rm = T)/sum(complete.cases(eduwa$Reduced.Lunch))
-```
-
-
-
-[Go to table of contents.](#TOC)
-
-<a id='part2'></a>
-
-### Measurement
-
-A simplistic idea of measurement tells you the times a particular unit is present in the unit of analysis; which allows for the presence of decimal places. There are variables that could even have negative values.
-
-Let's analyze the variable _Student.Teacher.Ratio_:
-
-```{r summaryMeans, eval=TRUE}
-summary(eduwa$Student.Teacher.Ratio)
-```
-
-Notice that the maximum value is very far from the mean and the median, this announces the presence of outliers, which can be revealed with a boxplot:
-
-```{r, eval=TRUE,warning=FALSE, message=FALSE}
-base=ggplot(eduwa) + theme_light()
-box2=base + geom_boxplot(aes(y=Student.Teacher.Ratio)) + 
-                      theme(axis.text.y = element_blank(),
-                            axis.ticks.y = element_blank(),
-                            axis.title.y = element_blank())
-box2=box2 + coord_flip()
-box2
-```
-
-Now, let's see if this is a multimodal distribution (more than one peak). Let's take a look at the histogram:
-
-
-```{r, warning=FALSE, message=FALSE}
-hist2=base + geom_histogram(aes(x=Student.Teacher.Ratio))
-hist2=hist2 + labs(y='count')
-hist2
-```
-
-You can use **ggplot_built** to get more details:
-
-```{r, message=FALSE, warning=FALSE}
-ggplot_build(hist2)$data[[1]]%>%head()
-```
-
-We can use some of that information:
-
-```{r, message=FALSE, warning=FALSE}
-(fromHist=ggplot_build(hist2)$data[[1]][,c('count','x','xmin','xmax')])
-```
-
-Here, I want to know the modal class:
-
-```{r}
-(modeClassInfo=round(fromHist[which.max(fromHist$count),],2))
-```
-
-Let me annotate:
-
-```{r, message=FALSE, warning=FALSE}
-# count for modal class
-ModeCountY=modeClassInfo$count
-# position of modal class 
-PositionCountX=modeClassInfo$x
-# txt
-txtMode=paste0("<- Count of Modal Class [",
-                   modeClassInfo$xmin,' - ',
-                   modeClassInfo$xmax,']')
-
-hist2ann=hist2 + geom_hline(yintercept =ModeCountY,
-                   linetype="dotted") +
-    annotate(geom = 'text',
-             label=ModeCountY,
-              y = ModeCountY+40,
-              x=PositionCountX,
-             color='red',
-              angle=0) +
-    annotate(geom = 'text',
-             label=txtMode,
-              y = ModeCountY+40,
-              x=PositionCountX+90,
-             color='red',
-              angle=0)
-hist2ann
-
+h1_ann    
 ```
 
 
@@ -394,7 +287,7 @@ We know this variable has one peak, it is highly skewed, and it has outliers at 
 
 ```{r,warning=FALSE, message=FALSE}
 library(ggpubr)
-ggarrange(hist2ann,box2,align='v',ncol = 1,heights = 2:1)
+ggarrange(h1_ann,b1_newGrid_axisText,align='v',ncol = 1,heights = 2:4)
 
 ```
 
@@ -402,116 +295,47 @@ As you see, that is not an exact match. An alternative can be the **violin** plo
 
 
 ```{r, warning=FALSE}
-base=ggplot(eduwa, aes(x=0,y=Student.Teacher.Ratio))+
+base=ggplot(eduwa, aes(x=0,y=Reduced.Lunch))+
             theme_classic()
 
-vio=base+geom_violin(trim=FALSE, fill="orange")
+vio=base+geom_violin(trim=FALSE, fill="grey")
 
-viobox=vio+geom_boxplot(width=0.2)
-viobox=viobox + coord_flip()
+viobox=vio+geom_boxplot(width=0.1,outlier.color = 'red',colour = 'white',fill='black')
+viobox=viobox + coord_flip() + 
+                theme(axis.text.y = element_blank(),
+                      axis.ticks.y = element_blank(),
+                      axis.title.y = element_blank()) + annotate(geom = 'text',
+                                label=txtOutliers,
+                                y = upperT+60,
+                                x=0.1,color='red',
+                                angle=0)
 viobox 
-```
-
-We could inform the amount of outliers:
-
-```{r}
-theVar=eduwa$Student.Teacher.Ratio
-theIQR=IQR(theVar,na.rm = T)
-upperT=summary(theVar)[[5]] + theIQR*1.5
-lowerT=summary(theVar)[[2]] - theIQR*1.5
-
-# top
-(numOutUp=sum(eduwa$Student.Teacher.Ratio>upperT,na.rm = T))
-# bottom
-(numOutLw=sum(eduwa$Student.Teacher.Ratio<lowerT,na.rm = T))
-```
-
-We know there are 185 outliers (83 at the bottom values and 102 at the top). Let's annotate the plot with that information:
-
-
-```{r, warning=FALSE}
-# prepare texts:
-annOutUN=paste0(numOutUp,' schools\nabove ',upperT)
-annOutLN=paste0(numOutLw,' schools\nbelow ',lowerT)
-
-# plotting
-viobox=viobox  + labs(x='')
-viobox + annotate(geom = 'text',
-              label=annOutUN,
-              y = upperT+60,
-              x=0.1,
-              angle=0) + 
-         annotate(geom = 'text',
-              label=annOutLN,
-              y = lowerT,
-              x=0.5,
-              angle=0) + 
-        theme(axis.text.y = element_blank(), # no text on y
-              axis.ticks.y = element_blank(),# no ticks on y
-              axis.line.y = element_blank()) # no line on y
 ```
 
 The violin plot will inform the presence of peaks, but not on the maximum value of the peak as the histogram shows.
 
 _____
 
-[Go to table of contents.](#TOC)
+[Go to top of document.](#part0)
 
 _____
 
 <a id='part3'></a>
 
 
-## LAB for THURSDAY: From numeric to ordinal via aggregation
+# First Deliverable (Option 2)
 
-Numerical data may be difficult to communicate as it has a lot of variability, and range. We could cut the data into intervals as in the last week´s lab; but you will get a histogram. 
+* Alternative 1: Prepare a plot for the column **Student.Teacher.Ratio**.
 
-Alternatively, you can use another variable, in general a political/geographical unit, to summarize the data:
+* Alternative 2: Aggregate _Reduced.Lunch_ by summing up per County, so that you can prepare a Pareto visual:
 
 ```{r}
-# sum of reduced lunches given per county
 reducedLunch_county=aggregate(data=eduwa,
-                         Reduced.Lunch~County,
-                         FUN=sum)
-#see
+                              Reduced.Lunch~County,
+                              FUN=sum)
 reducedLunch_county
 ```
 
-Now you have much less cases, just 39. Let's order by count in decreasing order:
-
-```{r}
-# order and minus (-) for decreasing
-reducedLunch_county=reducedLunch_county[order(-reducedLunch_county$Reduced.Lunch),]
-row.names(reducedLunch_county)=NULL
-head(reducedLunch_county,10)
-```
-Let's add the percent, and cummulative percent and cummulative count:
-
-```{r}
-reducedLunch_county$Percent=reducedLunch_county$Reduced.Lunch/sum(reducedLunch_county$Reduced.Lunch)
-reducedLunch_county$PercentCum=cumsum(reducedLunch_county$Percent)
-reducedLunch_county$Reduced.Lunch.Cum=cumsum(reducedLunch_county$Reduced.Lunch)
-# you get:
-reducedLunch_county
-```
-
-Now, instead the statistics of the numerical values (count of beneficiaries), you have information on the distribution of beneficiaries accross counties. The table below can tell you:
-
-```{r}
-# most benefited counties (sum the 80% of reduced lunches)
-reducedLunch_county[reducedLunch_county$PercentCum<0.8,"County"]
-```
-```{r}
-# count of the top benefited
-length(reducedLunch_county[reducedLunch_county$PercentCum<0.8,"County"])
-```
-
-```{r}
-# share represented of the top benefited
-length(reducedLunch_county[reducedLunch_county$PercentCum<0.8,"County"])/nrow(reducedLunch_county)
-```
-
-You can see that in a Pareto plot:
 
 ```{r}
 library(ggQC) # install this previously
@@ -524,24 +348,9 @@ paretoDraft
 
 ```
 
-Please, prepare for Thursday one of these:
-
-- A **better** version of this Pareto plot (modify it).
-
-- Your  **own alternative** version of a Pareto plot for the _Reduced.Lunch_ variable without using the library **ggQC** . This would be your first step:
-
-
-```{r, eval=TRUE}
-
-myBase=ggplot(data=reducedLunch_county,
-             aes(x=County,Reduced.Lunch.Cum)) + theme_classic() 
-myBarDraft=myBase  +geom_bar(stat = "identity") 
-myBarDraft=myBarDraft + coord_flip() 
-myBarDraft
-```
-
+You job is to create this plot step by step without using the **ggQC** library.
 
 
 _____
 
-[Go to table of contents.](#part0)
+[Go to top of document.](#part0)
