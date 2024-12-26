@@ -325,9 +325,9 @@ _____
 
 # First Deliverable (Option 2)
 
-* Alternative 1: Prepare a plot for the column **Student.Teacher.Ratio**.
+* **Alternative 1**: Prepare a plot for the column **Student.Teacher.Ratio**.
 
-* Alternative 2: Aggregate _Reduced.Lunch_ by summing up per County, so that you can prepare a Pareto visual:
+* **Alternative 2** (more challenging!): Aggregate _Reduced.Lunch_ by summing up per County, so that you can prepare a Pareto visual:
 
 ```{r}
 reducedLunch_county=aggregate(data=eduwa,
